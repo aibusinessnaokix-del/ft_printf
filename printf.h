@@ -36,24 +36,30 @@ int		count_precision(char *str);
 bool	detect_format(char c);
 size_t	percent_len(char *percent);
 int		count_percent(char *format);
-void	free_persection(char **arglist, size_t count);
-char	**allocate_persection(char	*format, char **arglist);
+void	free_persection(char **formlist, size_t count);
+char	**allocate_persection(char	*format, char **formlist);
 char	**malloc_persection(char *format);
-char	**split_pecent(char *format);
+char	**split_percent(char *format);
 
 t_flag	*malloc_flags(char *format);
 t_flag	initialize_flags(t_flag flags);
 t_flag	*initialize_flaglist(char *format, t_flag *flaglist);
-t_flag	*allocate_flags(char **arglist, t_flag *flaglist);
-t_flag	read_arglist(char *persecent, t_flag flag);
+t_flag	*allocate_flags(char **formlist, t_flag *flaglist);
+t_flag	read_formlist(char *persecent, t_flag flag);
 t_flag	char_flag(char c, t_flag flag);
 t_flag	str_flag(char *str, t_flag flag);
 t_flag	str_width(char *str, t_flag flag);
 t_flag	str_precision(char *str, t_flag flag);
 t_flag	str_length(char *str, t_flag flag);
 t_flag	str_format(char *str, t_flag flag);
-t_flag	*management_flaglist(char *format, char **arglist);
+t_flag	*management_flaglist(char *format, char **formlist);
 
-
+char	*return_c(va_list args);
+char	*return_s(va_list args);
+char	*return_di(va_list args);
+char	*return_u(va_list args);
+char	*return_x(va_list args);
+char	*return_largex(va_list args);
+char	*return_p(va_list args);
 
 #endif

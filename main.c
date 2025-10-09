@@ -91,9 +91,9 @@ bool	detect_format(char c)
 		return (true);
 	if (c == 'd' || c == 'i' || c == 'u')
 		return (true);
-	if (c == 'o' || c == 'x' || c == 'X')
+	if (c == '%' || c == 'x' || c == 'X')
 		return (true);
-	if (c == '%' || c == 'f')
+	if (c == 'o' || c == 'f')
 		return (true);
 	//if (c == 'e' || c == 'g')
 	//	return (true);
@@ -144,19 +144,19 @@ int	count_percent(char *format)
 
 char	**malloc_persection(char *format)
 {
-	char	**arglist;
+	char	**formlist;
 	size_t	pernbr;
 
 	pernbr = count_percent(format);
 	if (count_percent(format) == -1)
 		return (NULL);
-	arglist = (char **)malloc(sizeof(char *) * (pernbr + 1));
-	if (!arglist)
+	formlist = (char **)malloc(sizeof(char *) * (pernbr + 1));
+	if (!formlist)
 		return (NULL);
-	return (arglist);
+	return (formlist);
 }
 
-char	**allocate_persection(char	*format, char **arglist)
+char	**allocate_persection(char	*format, char **formlist)
 {
 	size_t	count;
 	size_t	perlen;
@@ -168,10 +168,10 @@ char	**allocate_persection(char	*format, char **arglist)
 		{
 			format++;
 			perlen = percent_len(format);
-			arglist[count] = ft_strndup(format, perlen);
-			if (!arglist[count])
+			formlist[count] = ft_strndup(format, perlen);
+			if (!formlist[count])
 			{
-				free_persection(arglist, count);
+				free_persection(formlist, count);
 				return (NULL);
 			}
 			count++, format += perlen;
@@ -179,17 +179,17 @@ char	**allocate_persection(char	*format, char **arglist)
 		else
 			format++;
 	}
-	return (arglist[count] = NULL, arglist);
+	return (formlist[count] = NULL, formlist);
 }
 
-void	free_persection(char **arglist, size_t count)
+void	free_persection(char **formlist, size_t count)
 {
 	while (count-- > 0)
-		free(arglist[count]);
-	free(arglist);
+		free(formlist[count]);
+	free(formlist);
 }
 
-char	**split_pecent(char *format)
+char	**split_percent(char *format)
 {
 	int		count;
 	char	**arglst;
@@ -251,20 +251,20 @@ t_flag	*initialize_flaglist(char *format, t_flag *flaglist)
 	return (flaglist);
 }
 
-t_flag	*allocate_flags(char **arglist, t_flag *flaglist)
+t_flag	*allocate_flags(char **formlist, t_flag *flaglist)
 {
 	size_t	count;
 	
 	count = 0;
-	while (arglist[count])
+	while (formlist[count])
 	{
-		flaglist[count] = read_arglist(arglist[count], flaglist[count]);
+		flaglist[count] = read_formlist(formlist[count], flaglist[count]);
 		count++;
 	}
 	return (flaglist);
 }
 
-t_flag	read_arglist(char *percent, t_flag flag)
+t_flag	read_formlist(char *percent, t_flag flag)
 {
 	flag = str_flag(percent, flag);
 	percent += count_flag(percent);
@@ -360,28 +360,20 @@ t_flag	str_format(char *str, t_flag flag)
 	return (flag);
 }
 
-t_flag	*management_flaglist(char *format, char **arglist)
+t_flag	*management_flaglist(char *format, char **formlist)
 {
 	t_flag	*flaglist;
 
 	flaglist = malloc_flags(format);
 	if (!flaglist)
 		return (NULL);
-	flaglist = allocate_flags(arglist, flaglist);
+	flaglist = allocate_flags(formlist, flaglist);
 	return (flaglist);
 }
 
 // this is the end of struct section and start of treat argument
 
-char *display_str(va_list args)
-{
-	char	*str;
-	
-	str = ft_strdup(va_arg(args, const char *));
-	return (str);
-}
-
-char *return_char(va_list args)
+char	*return_c(va_list args)
 {
 	char	*str;
 	
@@ -391,7 +383,15 @@ char *return_char(va_list args)
 	return (str);
 }
 
-char *return_int(va_list args)
+char	*return_s(va_list args)
+{
+	char	*str;
+	
+	str = ft_strdup(va_arg(args, const char *));
+	return (str);
+}
+
+char	*return_di(va_list args)
 {
 	int		nbr;
 	char	*itoa;
@@ -401,36 +401,147 @@ char *return_int(va_list args)
 	return (itoa);
 }
 
-char	*return_unsigned_int(va_list args)
+char	*return_u(va_list args)
 {
 	unsigned int	nbr;
 	char			*itoa;
 	
 	nbr = va_arg(args, unsigned int);
-	itoa = ft_itoa(nbr);
+	itoa = ft_itoa_unsigned(nbr);
 	return (itoa);
 }
 
-//void *return_void(va_list args)
-//{
-//	void	*ptr;
-//	char	*ptoa;
+char	*return_x(va_list args)
+{
+	unsigned int	nbr;
+	char			*itoa;
 	
-//	ptr = va_arg(args, ptr);
-//	ptoa = ft_ptoa(ptr);
-//	return (ptr);
-//}
+	nbr = va_arg(args, unsigned int);
+	itoa = ft_itoa_hexs(nbr);
+	return (itoa);
+}
+
+char	*return_largex(va_list args)
+{
+	unsigned int	nbr;
+	char			*itoa;
+	
+	nbr = va_arg(args, unsigned int);
+	itoa = ft_itoa_hexb(nbr);
+	return (itoa);
+}
+
+char	*return_p(va_list args)
+{
+	void			*ptr;
+	uintptr_t		addr;
+	char			*itoa;
+	
+	ptr = va_arg(args, void *);
+	addr = (uintptr_t)ptr;
+	itoa = ft_itoa_hexs(addr);
+	return (itoa);
+}
+
+char	**malloc_arglist(size_t count)
+{
+	char	**arglist;
+
+	arglist = (char **)malloc(sizeof(char *) * (count + 1));
+	if (!arglist)
+		return (NULL);
+	return (arglist);
+}
+
+char	*allocate_argument(va_list args, t_flag flaglist)
+{
+	if (flaglist.format == 'c')
+		return (return_c(args));
+	if (flaglist.format == 's')
+		return (return_s(args));
+	if (flaglist.format == 'd' || flaglist.format == 'i')
+		return (return_di(args));
+	if (flaglist.format == 'u')
+		return (return_u(args));
+	if (flaglist.format == 'x')
+		return (return_x(args));
+	if (flaglist.format == 'X')
+		return (return_largex(args));
+	if (flaglist.format == 'p')
+		return (return_p(args));
+	//if (flaglist.format == 'o')
+	//	return (return_o(args));
+	//if (flaglist.format == 'f')
+		//return (return_f(args));
+	if (flaglist.format == '%')
+		return (strdup("%"));
+	return (NULL);
+}
+
+char	**allocate_arglist(va_list args, char **arglist, t_flag *flaglist)
+{
+	size_t	count;
+	
+	count = 0;
+	while (flaglist[count].format)
+	{
+		arglist[count] = allocate_argument(args, flaglist[count]);
+		if (!arglist[count])
+		{
+			//free_arglist(arglist, count);
+			return (NULL);
+		}
+		count++;
+	}
+	arglist[count] = NULL;
+	return (arglist);
+}
+
+char	**management_arglist(va_list args, char *format, t_flag *flaglist)
+{
+	size_t	count;
+	char	**arglist;
+
+	count = count_percent(format);
+	arglist = malloc_arglist(count);
+	if (!arglist)
+		return (NULL);
+	arglist = allocate_arglist(args, arglist, flaglist);
+	return (arglist);
+}
+
+// this is the end of argument section and start of treat flags
 
 
+
+
+char	**testf(char *format, ...)
+{
+	va_list	args;
+	char	**formlist;
+	t_flag	*flaglist;
+	char	**arglist;
+
+	if (count_percent(format) < 0)
+		return (NULL);
+	formlist = split_percent(format);
+	flaglist = management_flaglist(format, formlist);
+	va_start(args, format);
+	arglist = management_arglist(args, format, flaglist);
+	va_end(args);
+	return (arglist);
+}
 
 //int main(void)
 //{
-//	char	*format;
 //	char	**arglist;
-//	t_flag	*flaglist;
-
-//	format = "ABdefg%-+ 0#.20hhd%%";
-//	arglist = split_pecent(format);
-//	flaglist = management_flaglist(format, arglist);
-
+//	char	*ptr;
+	
+//	ptr = "ABCDE";
+//	arglist = testf("%000ls%####000d%.30c%p%X", "ABCDE", -123, 'f', ptr, 31);
+//	printf("%s\n",arglist[0]);
+//	printf("%s\n",arglist[1]);
+//	printf("%s\n",arglist[2]);
+//	printf("%s\n",arglist[3]);
+//	printf("%s\n",arglist[4]);
 //}
