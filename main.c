@@ -182,29 +182,139 @@ char	**allocate_persection(char	*format, char **arglist)
 	return (arglist[count] = NULL, arglist);
 }
 
-char	**percent_execute(char *format)
+void	free_persection(char **arglist, size_t count)
 {
-	char	arglist;
+	while (count-- > 0)
+		free(arglist[count]);
+	free(arglist);
+}
+
+char	**split_pecent(char *format)
+{
+	int		count;
+	char	**arglst;
+
+	count = count_percent(format);
+	if (count < 0)
+		return (NULL);
+	arglst = malloc_persection(format);
+	if (!arglst)
+		return (NULL);
+	arglst = allocate_persection(format, arglst);
+	if (!arglst)
+		return (NULL);
+	return (arglst);
+}
+
+// this is the end of read section and start of flag management
+
+t_flag	*malloc_flags(char *format)
+{
+	t_flag	*flaglist;
+	size_t	count;
+
+	count = count_percent(format);
+	flaglist = (t_flag *)malloc(sizeof(t_flag) * (count + 1));
+	if (!flaglist)
+		return (NULL);
+	return (flaglist);
+}
+
+t_flag	initialize_flags(t_flag flags)
+{
+	flags.minus = false;
+	flags.plus = false;
+	flags.space = false;
+	flags.zero = false;
+	flags.sharp = false;
+	flags.quort = false;
+	flags.width = 0;
+	flags.precision = 0;
+	flags.length = 0;
+	flags.format = '\0';
+	return (flags);
+}
+
+t_flag	*initialize_flaglist(char *format, t_flag *flaglist)
+{
+	size_t	count;
+	size_t	index;
+
+	count = count_percent(format);
+	index = 0;
+	while (index <= count)
+	{
+		flaglist[index] = initialize_flags(flaglist[index]);
+		index++;
+	}
+	return (flaglist);
+}
+
+//t_flag	*allocate_flags(char **arglist, t_flag *flaglist)
+//{
+//	size_t	count;
 	
-	if (count_percent(format) == -1)
-		return (NULL);
-	arglist = malloc_persection(format);
-	if (!arglist)
-		return (NULL);
-	argllist = allocate_persection(format, arglist);
-	return (arglist);
+//	count = 0;
+//	while (arglist[count])
+//	{
+//		flaglist[count] = read_arglist(arglist[count]);
+//		count++;
+//	}
+//	flaglist[count].raw = NULL;
+//	return (flaglist);
+//}
+
+//t_flag	read_arglist(char *persection, t_flag flag)
+//{
+
+//}
+
+t_flag	char_flag(char c, t_flag flag)
+{	
+	if (c == '-')
+		flag.minus = true;
+	if (c == '+')
+		flag.plus = true;
+	if (c == ' ')
+		flag.space = true;
+	if (c == '#')
+		flag.sharp = true;
+	if (c == '0')
+		flag.zero = true;
+	return (flag);
 }
 
-int main(void)
+t_flag	str_flag(char *format, char *str, t_flag flag)
 {
-	char	*format;
-	char	**arglist;
+	size_t	size;
+	size_t	count;
 
-	format = "ABCDEFG%d%%ABCDE%0000 00ls";
-	arglist = malloc_persection(format);
-	arglist = allocate_persection(format, arglist);
-	printf("%s\n", arglist[0]);
-	printf("%s\n", arglist[1]);
-	printf("%s\n", arglist[2]);
-	printf("%p\n", arglist[3]);
+	size = count_flag(format);
+	count = 0;
+	while (count < size)
+	{
+		flag = char_flag(str[count], flag);
+		count++;
+	}
+	return (flag);
 }
+
+t_flag	str_width(char *str, t_flag flag)
+{
+	size_t	atoi;
+	
+
+}
+
+//int main(void)
+//{
+//	char	*format;
+//	char	**arglist;
+//	t_flag	*flaglist;
+
+//	format = "ABCDEFG%d%%ABCDE%0000 00ls";
+//	arglist = split_pecent(format);
+//	//flaglist = malloc_flags(format);
+//	//flaglist = allocate_flags(arglist,flaglist);
+
+//}
