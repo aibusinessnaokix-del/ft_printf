@@ -217,6 +217,7 @@ t_flag	*malloc_flags(char *format)
 	flaglist = (t_flag *)malloc(sizeof(t_flag) * (count + 1));
 	if (!flaglist)
 		return (NULL);
+	flaglist = initialize_flaglist(format, flaglist);
 	return (flaglist);
 }
 
@@ -359,35 +360,77 @@ t_flag	str_format(char *str, t_flag flag)
 	return (flag);
 }
 
-int main(void)
+t_flag	*management_flaglist(char *format, char **arglist)
 {
-	char	*format;
-	char	**arglist;
 	t_flag	*flaglist;
 
-	format = "ABdefg%-+ 0#.20hhd%%";
-	arglist = split_pecent(format);
 	flaglist = malloc_flags(format);
-	flaglist = allocate_flags(arglist,flaglist);
-	printf("%d\n",flaglist[0].minus);
-	printf("%d\n",flaglist[0].plus);
-	printf("%d\n",flaglist[0].space);
-	printf("%d\n",flaglist[0].zero);
-	printf("%d\n",flaglist[0].sharp);
-	printf("%d\n",flaglist[0].quort);
-	printf("%ld\n",flaglist[0].width);
-	printf("%ld\n",flaglist[0].precision);	
-	printf("%ld\n",flaglist[0].length);	
-	printf("%c\n",flaglist[0].format);
-	printf("\n");
-	printf("%d\n",flaglist[1].minus);
-	printf("%d\n",flaglist[1].plus);
-	printf("%d\n",flaglist[1].space);
-	printf("%d\n",flaglist[1].zero);
-	printf("%d\n",flaglist[1].sharp);
-	printf("%d\n",flaglist[1].quort);
-	printf("%ld\n",flaglist[1].width);
-	printf("%ld\n",flaglist[1].precision);	
-	printf("%ld\n",flaglist[1].length);	
-	printf("%c\n",flaglist[1].format);
+	if (!flaglist)
+		return (NULL);
+	flaglist = allocate_flags(arglist, flaglist);
+	return (flaglist);
 }
+
+// this is the end of struct section and start of treat argument
+
+char *display_str(va_list args)
+{
+	char	*str;
+	
+	str = ft_strdup(va_arg(args, const char *));
+	return (str);
+}
+
+char *return_char(va_list args)
+{
+	char	*str;
+	
+	str = (char *)malloc(sizeof(char) * 2);
+	str[0] = va_arg(args, int);
+	str[1] = '\0';
+	return (str);
+}
+
+char *return_int(va_list args)
+{
+	int		nbr;
+	char	*itoa;
+	
+	nbr = va_arg(args, int);
+	itoa = ft_itoa(nbr);
+	return (itoa);
+}
+
+char	*return_unsigned_int(va_list args)
+{
+	unsigned int	nbr;
+	char			*itoa;
+	
+	nbr = va_arg(args, unsigned int);
+	itoa = ft_itoa(nbr);
+	return (itoa);
+}
+
+//void *return_void(va_list args)
+//{
+//	void	*ptr;
+//	char	*ptoa;
+	
+//	ptr = va_arg(args, ptr);
+//	ptoa = ft_ptoa(ptr);
+//	return (ptr);
+//}
+
+
+
+//int main(void)
+//{
+//	char	*format;
+//	char	**arglist;
+//	t_flag	*flaglist;
+
+//	format = "ABdefg%-+ 0#.20hhd%%";
+//	arglist = split_pecent(format);
+//	flaglist = management_flaglist(format, arglist);
+
+//}

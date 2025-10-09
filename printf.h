@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 typedef struct s_flag
 {
@@ -38,6 +39,7 @@ int		count_percent(char *format);
 void	free_persection(char **arglist, size_t count);
 char	**allocate_persection(char	*format, char **arglist);
 char	**malloc_persection(char *format);
+char	**split_pecent(char *format);
 
 t_flag	*malloc_flags(char *format);
 t_flag	initialize_flags(t_flag flags);
@@ -50,5 +52,8 @@ t_flag	str_width(char *str, t_flag flag);
 t_flag	str_precision(char *str, t_flag flag);
 t_flag	str_length(char *str, t_flag flag);
 t_flag	str_format(char *str, t_flag flag);
+t_flag	*management_flaglist(char *format, char **arglist);
+
+
 
 #endif
