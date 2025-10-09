@@ -250,24 +250,32 @@ t_flag	*initialize_flaglist(char *format, t_flag *flaglist)
 	return (flaglist);
 }
 
-//t_flag	*allocate_flags(char **arglist, t_flag *flaglist)
-//{
-//	size_t	count;
+t_flag	*allocate_flags(char **arglist, t_flag *flaglist)
+{
+	size_t	count;
 	
-//	count = 0;
-//	while (arglist[count])
-//	{
-//		flaglist[count] = read_arglist(arglist[count]);
-//		count++;
-//	}
-//	flaglist[count].raw = NULL;
-//	return (flaglist);
-//}
+	count = 0;
+	while (arglist[count])
+	{
+		flaglist[count] = read_arglist(arglist[count], flaglist[count]);
+		count++;
+	}
+	return (flaglist);
+}
 
-//t_flag	read_arglist(char *persection, t_flag flag)
-//{
-
-//}
+t_flag	read_arglist(char *percent, t_flag flag)
+{
+	flag = str_flag(percent, flag);
+	percent += count_flag(percent);
+	flag = str_width(percent, flag);
+	percent += count_width(percent);
+	flag = str_precision(percent, flag);
+	percent += count_precision(percent);
+	flag = str_length(percent, flag);
+	percent += count_length(percent);
+	flag = str_format(percent, flag);
+	return (flag);
+}
 
 t_flag	char_flag(char c, t_flag flag)
 {	
@@ -284,14 +292,12 @@ t_flag	char_flag(char c, t_flag flag)
 	return (flag);
 }
 
-t_flag	str_flag(char *format, char *str, t_flag flag)
+t_flag	str_flag(char *str, t_flag flag)
 {
-	size_t	size;
 	size_t	count;
 
-	size = count_flag(format);
 	count = 0;
-	while (count < size)
+	while (detect_flag(str[count]) == true)
 	{
 		flag = char_flag(str[count], flag);
 		count++;
@@ -303,18 +309,85 @@ t_flag	str_width(char *str, t_flag flag)
 {
 	size_t	atoi;
 	
-
+	atoi = ft_atoi_alpha(str);
+	flag.width = atoi;
+	return (flag);
 }
 
-//int main(void)
-//{
-//	char	*format;
-//	char	**arglist;
-//	t_flag	*flaglist;
+t_flag	str_precision(char *str, t_flag flag)
+{
+	size_t	atoi;
 
-//	format = "ABCDEFG%d%%ABCDE%0000 00ls";
-//	arglist = split_pecent(format);
-//	//flaglist = malloc_flags(format);
-//	//flaglist = allocate_flags(arglist,flaglist);
+	if (*str != '.')
+		return (flag);
+	str++;
+	atoi = ft_atoi_alpha(str);
+	flag.precision = atoi;
+	return (flag);
+}
 
-//}
+static size_t	str_length1(char *str)
+{
+	if (*str == 'h')
+	{
+		str++;
+		if (*str == 'h')
+			return (2);
+		return(1);
+	}
+	if (*str == 'l')
+	{
+		str++;
+		if (*str == 'l')
+			return (4);
+		return(3);
+	}
+	if (*str == 'L')
+		return(5);
+	return (0);
+}
+
+t_flag	str_length(char *str, t_flag flag)
+{
+	flag.length = str_length1(str);
+	return (flag);
+}
+
+t_flag	str_format(char *str, t_flag flag)
+{
+	flag.format = *str;
+	return (flag);
+}
+
+int main(void)
+{
+	char	*format;
+	char	**arglist;
+	t_flag	*flaglist;
+
+	format = "ABdefg%-+ 0#.20hhd%%";
+	arglist = split_pecent(format);
+	flaglist = malloc_flags(format);
+	flaglist = allocate_flags(arglist,flaglist);
+	printf("%d\n",flaglist[0].minus);
+	printf("%d\n",flaglist[0].plus);
+	printf("%d\n",flaglist[0].space);
+	printf("%d\n",flaglist[0].zero);
+	printf("%d\n",flaglist[0].sharp);
+	printf("%d\n",flaglist[0].quort);
+	printf("%ld\n",flaglist[0].width);
+	printf("%ld\n",flaglist[0].precision);	
+	printf("%ld\n",flaglist[0].length);	
+	printf("%c\n",flaglist[0].format);
+	printf("\n");
+	printf("%d\n",flaglist[1].minus);
+	printf("%d\n",flaglist[1].plus);
+	printf("%d\n",flaglist[1].space);
+	printf("%d\n",flaglist[1].zero);
+	printf("%d\n",flaglist[1].sharp);
+	printf("%d\n",flaglist[1].quort);
+	printf("%ld\n",flaglist[1].width);
+	printf("%ld\n",flaglist[1].precision);	
+	printf("%ld\n",flaglist[1].length);	
+	printf("%c\n",flaglist[1].format);
+}

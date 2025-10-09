@@ -12,7 +12,6 @@
 
 typedef struct s_flag
 {
-	char	*raw;
 	bool	minus;
 	bool	plus;
 	bool	space;
@@ -24,6 +23,8 @@ typedef struct s_flag
 	size_t	length;
 	char	format;
 } t_flag;
+
+//length h = 1, hh = 2, l = 3, ll = 4 L = 5
 
 bool	detect_flag(char c);
 size_t	count_flag(char *str);
@@ -39,6 +40,15 @@ char	**allocate_persection(char	*format, char **arglist);
 char	**malloc_persection(char *format);
 
 t_flag	*malloc_flags(char *format);
+t_flag	initialize_flags(t_flag flags);
+t_flag	*initialize_flaglist(char *format, t_flag *flaglist);
 t_flag	*allocate_flags(char **arglist, t_flag *flaglist);
+t_flag	read_arglist(char *persecent, t_flag flag);
+t_flag	char_flag(char c, t_flag flag);
+t_flag	str_flag(char *str, t_flag flag);
+t_flag	str_width(char *str, t_flag flag);
+t_flag	str_precision(char *str, t_flag flag);
+t_flag	str_length(char *str, t_flag flag);
+t_flag	str_format(char *str, t_flag flag);
 
 #endif
