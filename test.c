@@ -16,10 +16,10 @@
 //	return (count);
 //}
 
-//int main(void)
-//{
-//	int n;
+int main(void)
+{
+	char*	str;
 
-//	n = 10;
-//	printf("%#10x\n", n);
-//}
+	str = "abc";
+	printf("%.0s\n", str);
+}

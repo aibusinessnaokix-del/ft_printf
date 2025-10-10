@@ -82,5 +82,15 @@ char	*treat_flag_x1(char *itoa, t_flag flag, char *dest, size_t size);
 char	*treat_flag_x_m(char *itoa, t_flag flag, char *dest, size_t size);
 char	*treat_flag_x_z(char *itoa, t_flag flag, char *dest, size_t size);
 char	*treat_flag_x_n(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_lx(char	*itoa, t_flag flag);
+char	*treat_flag_lx1(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_lx_m(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_lx_z(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_lx_n(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_p(char	*itoa, t_flag flag);
+char	*treat_flag_p1(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_p_m(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_p_z(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_p_n(char *itoa, t_flag flag, char *dest, size_t size);
 
 #endif

@@ -610,6 +610,8 @@ char	*treat_flag_di_hn(char *itoa, t_flag flag, char *dest, size_t size)
 	size_t	isize;
 	
 	icount = 0, dcount = 0, isize = ft_strlen(itoa);
+	while (dcount + flag.precision + 1 < size && dcount + isize < size)
+		dest[dcount++] = ' ';
 	if (itoa[icount] == '-')
 	{
 		dest[dcount++] = itoa[icount++];
@@ -618,8 +620,6 @@ char	*treat_flag_di_hn(char *itoa, t_flag flag, char *dest, size_t size)
 	else if (flag.plus)
 		dest[dcount++] = '+';
 	else
-		dest[dcount++] = ' ';
-	while (dcount + flag.precision < size && dcount + isize < size)
 		dest[dcount++] = ' ';
 	while (dcount + isize< size)
 		dest[dcount++] = '0';
@@ -883,37 +883,212 @@ char	*treat_flag_x_n(char *itoa, t_flag flag, char *dest, size_t size)
 	return (dest);
 }
 
-//char	*return_largex(va_list args, t_flag flag)
-//{
-//	unsigned int	nbr;
-//	char			*itoa;
+char	*return_largex(va_list args, t_flag flag)
+{
+	unsigned int	nbr;
+	char			*itoa;
+	char			*dest;
 	
-//	if (flag.length <= 2)
-//		nbr = va_arg(args, unsigned int);
-//	if (flag.length == 1)
-//		nbr = (unsigned short int)nbr;
-//	if (flag.length == 2)
-//		nbr = (unsigned char)nbr;
-//	if (flag.length == 3)
-//		nbr = va_arg(args, unsigned long int);
-//	if (flag.length == 4)
-//		nbr = va_arg(args, unsigned long long int);
-//	itoa = treat_flag_largex(nbr, falglist);
-//	return (itoa);
-//}
+	if (flag.length <= 2)
+		nbr = va_arg(args, unsigned int);
+	if (flag.length == 1)
+		nbr = (unsigned short int)nbr;
+	if (flag.length == 2)
+		nbr = (unsigned char)nbr;
+	if (flag.length == 3)
+		nbr = va_arg(args, unsigned long int);
+	if (flag.length == 4)
+		nbr = va_arg(args, unsigned long long int);
+	itoa = ft_itoa_hexb(nbr);
+	dest = treat_flag_lx(itoa, flag);
+	return (dest);
+}
 
-//char	*return_p(va_list args, t_flag flag)
-//{
-//	void			*ptr;
-//	uintptr_t		addr;
-//	char			*itoa;
+char	*treat_flag_lx(char	*itoa, t_flag flag)
+{
+	size_t	size;
+	char	*dest;
+
+	if (flag.sharp)
+		size = 	return_maximum(flag.precision + 2, ft_strlen(itoa) + 2, flag.width);
+	else
+		size = 	return_maximum(flag.precision, ft_strlen(itoa), flag.width);
+	dest = (char *)malloc(sizeof(char) * (size + 1));
+	if (dest == NULL)
+		return (NULL);
+	dest = treat_flag_lx1(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_lx1(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	if (flag.minus)
+		dest = treat_flag_lx_m(itoa, flag, dest, size);
+	else if (flag.zero)
+		dest = treat_flag_lx_z(itoa, flag, dest, size);
+	else
+		dest = treat_flag_lx_n(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_lx_m(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
 	
-//	ptr = va_arg(args, void *);
-//	addr = (uintptr_t)ptr;
-//	itoa = treat_flag_p(addr, falglist);
-//	(void)flag;
-//	return (itoa);
-//}
+	icount = 0, dcount = 0;
+	if (flag.sharp)
+	{
+		dest[dcount++] = '0';
+		dest[dcount++] = 'X';
+		while (dcount - 2 + ft_strlen(itoa) < flag.precision)
+			dest[dcount++] = '0';
+	}
+	else
+	while (dcount + ft_strlen(itoa) < flag.precision)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	while (dcount < size)
+		dest[dcount++] = ' ';
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_lx_z(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	if (flag.sharp)
+	{
+		dest[dcount++] = '0';
+		dest[dcount++] = 'X';
+	}
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_lx_n(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	if (!flag.sharp)
+		while (dcount + flag.precision < size && dcount + ft_strlen(itoa) < size)
+			dest[dcount++] = ' ';
+	if (flag.sharp)
+	{
+		while (dcount + flag.precision + 2 < size && dcount + ft_strlen(itoa) + 2 < size)
+			dest[dcount++] = ' ';
+		dest[dcount++] = '0';
+		dest[dcount++] = 'X';
+	}
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*return_p(va_list args, t_flag flag)
+{
+	void			*ptr;
+	uintptr_t		addr;
+	char			*itoa;
+	char			*dest;
+	
+	ptr = va_arg(args, void *);
+	addr = (uintptr_t)ptr;
+	itoa = ft_itoa_hexs(addr);
+	dest = treat_flag_p(itoa, flag);
+	return (itoa);
+}
+
+char	*treat_flag_p(char	*itoa, t_flag flag)
+{
+	size_t	size;
+	char	*dest;
+
+	size = 	return_maximum(flag.precision + 2, ft_strlen(itoa) + 2, flag.width);
+	dest = (char *)malloc(sizeof(char) * (size + 1));
+	if (dest == NULL)
+		return (NULL);
+	dest = treat_flag_p1(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_p1(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	if (flag.minus)
+		dest = treat_flag_p_m(itoa, flag, dest, size);
+	else if (flag.zero)
+		dest = treat_flag_p_z(itoa, flag, dest, size);
+	else
+		dest = treat_flag_p_n(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_p_m(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	dest[dcount++] = '0';
+	dest[dcount++] = 'X';
+	while (dcount - 2 + ft_strlen(itoa) < flag.precision)
+		dest[dcount++] = '0';
+	while (dcount + ft_strlen(itoa) < flag.precision)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	while (dcount < size)
+		dest[dcount++] = ' ';
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_p_z(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+		dest[dcount++] = '0';
+		dest[dcount++] = 'X';
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_p_n(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	while (dcount + flag.precision + 2 < size && dcount + ft_strlen(itoa) + 2 < size)
+		dest[dcount++] = ' ';
+	dest[dcount++] = '0';
+	dest[dcount++] = 'X';
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
 
 //char	*return_o(va_list args, t_flag flag)
 //{
@@ -930,7 +1105,7 @@ char	*treat_flag_x_n(char *itoa, t_flag flag, char *dest, size_t size)
 //		nbr = va_arg(args, unsigned long int);
 //	if (flag.length == 4)
 //		nbr = va_arg(args, unsigned long long int);
-//	itoa = treat_flag_o(nbr, falglist);
+//	itoa = treat_flag_o(nbr, flag);
 //	return (itoa);
 //}
 
@@ -957,10 +1132,10 @@ char	*allocate_argument(va_list args, t_flag flag)
 		return (return_u(args, flag));
 	if (flag.format == 'x')
 		return (return_x(args, flag));
-	//if (flag.format == 'X')
-	//	return (return_largex(args, flag));
-	//if (flag.format == 'p')
-	//	return (return_p(args, flag));
+	if (flag.format == 'X')
+		return (return_largex(args, flag));
+	if (flag.format == 'p')
+		return (return_p(args, flag));
 	//if (flag.format == 'o')
 	//	return (return_o(args, flag));
 	//if (flag.format == 'f')
@@ -1027,6 +1202,6 @@ char	**testf(char *format, ...)
 int main(void)
 {
 	char	**arglist;
-	arglist = testf("%#10x", 100);
+	arglist = testf("%10d", -100);
 	printf("%s\n",arglist[0]);
 }
