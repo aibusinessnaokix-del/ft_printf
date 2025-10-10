@@ -1,29 +1,25 @@
-#include "libft/libft.h"
-#include "printf.h"
+//#include "libft/libft.h"
+//#include "printf.h"
 
-//char *return_str(va_list args)
+#include <stdio.h>
+
+//size_t	digit_n(long long int n)
 //{
-//	char	*str;
-	
-//	str = va_arg(args, char *);
-//	return (str);
+//	size_t	count;
+
+//	count = 0;	
+//	while (n > 0)
+//	{
+//		n = n / 10;
+//		count++;
+//	}
+//	return (count);
 //}
 
-//void ft_test(const char *format, ...)
+//int main(void)
 //{
-//	va_list	args;
-//	char	*str;
+//	int n;
 
-//	printf("%s\n", format);
-//	va_start(args, format);
-//	str = return_str(args);
-//	printf("%s\n", str);
-//	va_end(args);
+//	n = 10;
+//	printf("%#10x\n", n);
 //}
-
-
-
-int main(void)
-{
-	printf("%.6d\n", -1234);
-}

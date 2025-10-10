@@ -373,75 +373,567 @@ t_flag	*management_flaglist(char *format, char **formlist)
 
 // this is the end of struct section and start of treat argument
 
-char	*return_c(va_list args)
+char	*treat_flag_c1(char c, t_flag flag, char *dest, size_t size)
 {
+	size_t	count;
+
+	count = 0;
+	if (flag.minus)
+	{
+		dest[count++] = c;
+		while (count < size)
+			dest[count++] = ' ';
+	}
+	else
+	{
+		while (count < size - 1)
+			dest[count++] = ' ';
+		dest[count++] = c;
+	}
+	dest[count] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_c(char c, t_flag flag)
+{
+	size_t	size;
+	char	*dest;
+
+	size = flag.width;
+	if (size < 1)
+		size = 1;
+	dest = (char *)malloc(sizeof(char) * (size + 1));
+		if (dest == NULL)
+			return (NULL);
+	dest = treat_flag_c1(c, flag, dest, size);
+	return (dest);
+}
+
+char	*return_c(va_list args, t_flag flag)
+{
+	char	c;
 	char	*str;
 	
-	str = (char *)malloc(sizeof(char) * 2);
-	str[0] = va_arg(args, int);
-	str[1] = '\0';
+	c =  va_arg(args, int);
+	str = treat_flag_c(c, flag);
+	(void)flag;
 	return (str);
 }
 
-char	*return_s(va_list args)
+char	*treat_flag_s1(char *src, t_flag flag, char *dest, size_t size)
 {
-	char	*str;
-	
-	str = ft_strdup(va_arg(args, const char *));
-	return (str);
+	size_t	dcount;
+	size_t	scount;
+
+	dcount = 0;
+	scount = 0;
+	if (flag.minus)
+	{
+		while (src[scount] && (scount < flag.precision || flag.precision == 0))
+			dest[dcount++] = src[scount++];
+		while (dcount < size)
+			dest[dcount++] = ' ';
+	}
+	else
+	{
+		while (dcount < size - ft_strlen(src) || (dcount < size - flag.precision && flag.precision != 0))
+			dest[dcount++] = ' ';
+		while (dcount < size)
+			dest[dcount++] = src[scount++];
+	}
+	dest[dcount] = '\0';
+	return (dest);
 }
 
-char	*return_di(va_list args)
+char	*treat_flag_s(char *src, t_flag flag)
+{
+	size_t	size;
+	char	*dest;
+
+	size = flag.width;
+	if (size < ft_strlen(src))
+		size = ft_strlen(src);
+	dest = (char *)malloc(sizeof(char) * (size + 1));
+		if (dest == NULL)
+			return (NULL);
+	dest = treat_flag_s1(src, flag, dest, size);
+	return (dest);
+}
+
+char	*return_s(va_list args, t_flag flag)
+{
+	char	*src;
+	char	*dest;
+	
+	src =  va_arg(args, char *);
+	dest = treat_flag_s(src, flag);
+	return (dest);
+}
+
+char	*return_di(va_list args, t_flag flag)
 {
 	int		nbr;
 	char	*itoa;
+	char	*dest;
 	
-	nbr = va_arg(args, int);
+	if (flag.length <= 2)
+		nbr = va_arg(args, int);
+	if (flag.length == 1)
+		nbr = (short int)nbr;
+	if (flag.length == 2)
+		nbr = (signed char)nbr;
+	if (flag.length == 3)
+		nbr = va_arg(args, long int);
+	if (flag.length == 4)
+		nbr = va_arg(args, long long int);
 	itoa = ft_itoa(nbr);
-	return (itoa);
+	dest = treat_flag_di(itoa, flag);
+	return (dest);
 }
 
-char	*return_u(va_list args)
+char	*treat_flag_di(char	*itoa, t_flag flag)
+{
+	size_t	size;
+	char	*dest;
+
+	if (itoa[0] == '-')
+		size = 	return_maximum(flag.precision + 1, ft_strlen(itoa), flag.width);
+	else if (flag.plus || flag.space)
+		size = 	return_maximum(flag.precision + 1, ft_strlen(itoa) + 1, flag.width);
+	else
+		size = 	return_maximum(flag.precision, ft_strlen(itoa), flag.width);
+	dest = (char *)malloc(sizeof(char) * (size + 1));
+	if (dest == NULL)
+		return (NULL);
+	dest = treat_flag_di1(itoa, flag, dest, size);
+	return (dest);
+}
+
+size_t	return_maximum(size_t s1, size_t s2, size_t s3)
+{
+	size_t	max;
+
+	max = s1;
+	if (max < s2)
+		max = s2;
+	if (max < s3)
+		max = s3;
+	return (max);
+}
+
+char	*treat_flag_di1(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	if (itoa[0] == '-' || flag.space || flag.plus)
+		dest = treat_flag_di_h(itoa, flag, dest, size);
+	else
+		dest = treat_flag_di_n(itoa, flag, dest, size);
+	free(itoa);
+	return (dest);
+}
+
+char	*treat_flag_di_h(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	if (flag.minus)
+		dest = treat_flag_di_hm(itoa, flag, dest, size);
+	else if (flag.zero)
+		dest = treat_flag_di_hz(itoa, flag, dest, size);
+	else
+		dest = treat_flag_di_hn(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_di_n(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	if (flag.minus)
+		dest = treat_flag_di_nm(itoa, flag, dest, size);
+	else if (flag.zero)
+		dest = treat_flag_di_nz(itoa, flag, dest, size);
+	else
+		dest = treat_flag_di_nn(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_di_hm(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	size_t	isize;
+	
+	icount = 0, dcount = 0, isize = ft_strlen(itoa);
+	if (itoa[icount] == '-')
+	{
+		dest[dcount++] = itoa[icount++];
+		isize--;
+	}
+	else if (flag.plus)
+		dest[dcount++] = '+';
+	else
+		dest[dcount++] = ' ';
+	while (dcount - 1  + isize< flag.precision)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	while (dcount < size)
+		dest[dcount++] = ' ';
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_di_hz(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	size_t	isize;
+	
+	icount = 0, dcount = 0, isize = ft_strlen(itoa);
+	if (itoa[icount] == '-')
+	{
+		dest[dcount++] = itoa[icount++];
+		isize--;
+	}
+	else if (flag.plus)
+		dest[dcount++] = '+';
+	else
+		dest[dcount++] = ' ';
+	while (dcount + isize < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_di_hn(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	size_t	isize;
+	
+	icount = 0, dcount = 0, isize = ft_strlen(itoa);
+	if (itoa[icount] == '-')
+	{
+		dest[dcount++] = itoa[icount++];
+		isize--;
+	}
+	else if (flag.plus)
+		dest[dcount++] = '+';
+	else
+		dest[dcount++] = ' ';
+	while (dcount + flag.precision < size && dcount + isize < size)
+		dest[dcount++] = ' ';
+	while (dcount + isize< size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_di_nm(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+
+	dcount = 0, icount = 0;
+	while (dcount + ft_strlen(itoa) < flag.precision)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	while (dcount < size)
+		dest[dcount++] = ' ';
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_di_nz(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	(void)flag;
+	return (dest);
+}
+
+char	*treat_flag_di_nn(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	dcount = 0, icount = 0;
+	while (dcount + flag.precision < size && dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = ' ';
+	while (dcount < size - ft_strlen(itoa))
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*return_u(va_list args, t_flag flag)
 {
 	unsigned int	nbr;
 	char			*itoa;
+	char			*dest;
 	
-	nbr = va_arg(args, unsigned int);
+	if (flag.length <= 2)
+		nbr = va_arg(args, unsigned int);
+	if (flag.length == 1)
+		nbr = (unsigned short int)nbr;
+	if (flag.length == 2)
+		nbr = (unsigned char)nbr;
+	if (flag.length == 3)
+		nbr = va_arg(args, unsigned long int);
+	if (flag.length == 4)
+		nbr = va_arg(args, unsigned long long int);
 	itoa = ft_itoa_unsigned(nbr);
-	return (itoa);
+	dest = treat_flag_u(itoa, flag);
+	return (dest);
 }
 
-char	*return_x(va_list args)
+char	*treat_flag_u(char	*itoa, t_flag flag)
+{
+	size_t	size;
+	char	*dest;
+
+	size = 	return_maximum(flag.precision, ft_strlen(itoa), flag.width);
+	dest = (char *)malloc(sizeof(char) * (size + 1));
+	if (dest == NULL)
+		return (NULL);
+	dest = treat_flag_u1(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_u1(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	if (flag.minus)
+		dest = treat_flag_u_m(itoa, flag, dest, size);
+	else if (flag.zero)
+		dest = treat_flag_u_z(itoa, flag, dest, size);
+	else
+		dest = treat_flag_u_n(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_u_m(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+
+	dcount = 0, icount = 0;
+	while (dcount + ft_strlen(itoa) < flag.precision)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	while (dcount < size)
+		dest[dcount++] = ' ';
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_u_z(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	(void)flag;
+	return (dest);
+}
+
+char	*treat_flag_u_n(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	dcount = 0, icount = 0;
+	while (dcount + flag.precision < size && dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = ' ';
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*return_x(va_list args, t_flag flag)
 {
 	unsigned int	nbr;
 	char			*itoa;
+	char			*dest;
 	
-	nbr = va_arg(args, unsigned int);
+	if (flag.length <= 2)
+		nbr = va_arg(args, unsigned int);
+	if (flag.length == 1)
+		nbr = (unsigned short int)nbr;
+	if (flag.length == 2)
+		nbr = (unsigned char)nbr;
+	if (flag.length == 3)
+		nbr = va_arg(args, unsigned long int);
+	if (flag.length == 4)
+		nbr = va_arg(args, unsigned long long int);
 	itoa = ft_itoa_hexs(nbr);
-	return (itoa);
+	dest = treat_flag_x(itoa, flag);
+	return (dest);
 }
 
-char	*return_largex(va_list args)
+char	*treat_flag_x(char	*itoa, t_flag flag)
 {
-	unsigned int	nbr;
-	char			*itoa;
-	
-	nbr = va_arg(args, unsigned int);
-	itoa = ft_itoa_hexb(nbr);
-	return (itoa);
+	size_t	size;
+	char	*dest;
+
+	if (flag.sharp)
+		size = 	return_maximum(flag.precision + 2, ft_strlen(itoa) + 2, flag.width);
+	else
+		size = 	return_maximum(flag.precision, ft_strlen(itoa), flag.width);
+	dest = (char *)malloc(sizeof(char) * (size + 1));
+	if (dest == NULL)
+		return (NULL);
+	dest = treat_flag_x1(itoa, flag, dest, size);
+	return (dest);
 }
 
-char	*return_p(va_list args)
+char	*treat_flag_x1(char *itoa, t_flag flag, char *dest, size_t size)
 {
-	void			*ptr;
-	uintptr_t		addr;
-	char			*itoa;
-	
-	ptr = va_arg(args, void *);
-	addr = (uintptr_t)ptr;
-	itoa = ft_itoa_hexs(addr);
-	return (itoa);
+	if (flag.minus)
+		dest = treat_flag_x_m(itoa, flag, dest, size);
+	else if (flag.zero)
+		dest = treat_flag_x_z(itoa, flag, dest, size);
+	else
+		dest = treat_flag_x_n(itoa, flag, dest, size);
+	return (dest);
 }
+
+char	*treat_flag_x_m(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	if (flag.sharp)
+	{
+		dest[dcount++] = '0';
+		dest[dcount++] = 'x';
+		while (dcount - 2 + ft_strlen(itoa) < flag.precision)
+			dest[dcount++] = '0';
+	}
+	else
+	while (dcount + ft_strlen(itoa) < flag.precision)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	while (dcount < size)
+		dest[dcount++] = ' ';
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_x_z(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	if (flag.sharp)
+	{
+		dest[dcount++] = '0';
+		dest[dcount++] = 'x';
+	}
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_x_n(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	if (!flag.sharp)
+		while (dcount + flag.precision < size && dcount + ft_strlen(itoa) < size)
+			dest[dcount++] = ' ';
+	if (flag.sharp)
+	{
+		while (dcount + flag.precision + 2 < size && dcount + ft_strlen(itoa) + 2 < size)
+			dest[dcount++] = ' ';
+		dest[dcount++] = '0';
+		dest[dcount++] = 'x';
+	}
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+//char	*return_largex(va_list args, t_flag flag)
+//{
+//	unsigned int	nbr;
+//	char			*itoa;
+	
+//	if (flag.length <= 2)
+//		nbr = va_arg(args, unsigned int);
+//	if (flag.length == 1)
+//		nbr = (unsigned short int)nbr;
+//	if (flag.length == 2)
+//		nbr = (unsigned char)nbr;
+//	if (flag.length == 3)
+//		nbr = va_arg(args, unsigned long int);
+//	if (flag.length == 4)
+//		nbr = va_arg(args, unsigned long long int);
+//	itoa = treat_flag_largex(nbr, falglist);
+//	return (itoa);
+//}
+
+//char	*return_p(va_list args, t_flag flag)
+//{
+//	void			*ptr;
+//	uintptr_t		addr;
+//	char			*itoa;
+	
+//	ptr = va_arg(args, void *);
+//	addr = (uintptr_t)ptr;
+//	itoa = treat_flag_p(addr, falglist);
+//	(void)flag;
+//	return (itoa);
+//}
+
+//char	*return_o(va_list args, t_flag flag)
+//{
+//	unsigned int	nbr;
+//	char			*itoa;
+	
+//	if (flag.length <= 2)
+//		nbr = va_arg(args, unsigned int);
+//	if (flag.length == 1)
+//		nbr = (unsigned short int)nbr;
+//	if (flag.length == 2)
+//		nbr = (unsigned char)nbr;
+//	if (flag.length == 3)
+//		nbr = va_arg(args, unsigned long int);
+//	if (flag.length == 4)
+//		nbr = va_arg(args, unsigned long long int);
+//	itoa = treat_flag_o(nbr, falglist);
+//	return (itoa);
+//}
+
 
 char	**malloc_arglist(size_t count)
 {
@@ -453,27 +945,27 @@ char	**malloc_arglist(size_t count)
 	return (arglist);
 }
 
-char	*allocate_argument(va_list args, t_flag flaglist)
+char	*allocate_argument(va_list args, t_flag flag)
 {
-	if (flaglist.format == 'c')
-		return (return_c(args));
-	if (flaglist.format == 's')
-		return (return_s(args));
-	if (flaglist.format == 'd' || flaglist.format == 'i')
-		return (return_di(args));
-	if (flaglist.format == 'u')
-		return (return_u(args));
-	if (flaglist.format == 'x')
-		return (return_x(args));
-	if (flaglist.format == 'X')
-		return (return_largex(args));
-	if (flaglist.format == 'p')
-		return (return_p(args));
-	//if (flaglist.format == 'o')
-	//	return (return_o(args));
-	//if (flaglist.format == 'f')
-		//return (return_f(args));
-	if (flaglist.format == '%')
+	if (flag.format == 'c')
+		return (return_c(args, flag));
+	if (flag.format == 's')
+		return (return_s(args, flag));
+	if (flag.format == 'd' || flag.format == 'i')
+		return (return_di(args, flag));
+	if (flag.format == 'u')
+		return (return_u(args, flag));
+	if (flag.format == 'x')
+		return (return_x(args, flag));
+	//if (flag.format == 'X')
+	//	return (return_largex(args, flag));
+	//if (flag.format == 'p')
+	//	return (return_p(args, flag));
+	//if (flag.format == 'o')
+	//	return (return_o(args, flag));
+	//if (flag.format == 'f')
+		//return (return_f(args, flag));
+	if (flag.format == '%') // i may have to check no flags set
 		return (strdup("%"));
 	return (NULL);
 }
@@ -532,16 +1024,9 @@ char	**testf(char *format, ...)
 	return (arglist);
 }
 
-//int main(void)
-//{
-//	char	**arglist;
-//	char	*ptr;
-	
-//	ptr = "ABCDE";
-//	arglist = testf("%000ls%####000d%.30c%p%X", "ABCDE", -123, 'f', ptr, 31);
-//	printf("%s\n",arglist[0]);
-//	printf("%s\n",arglist[1]);
-//	printf("%s\n",arglist[2]);
-//	printf("%s\n",arglist[3]);
-//	printf("%s\n",arglist[4]);
-//}
+int main(void)
+{
+	char	**arglist;
+	arglist = testf("%#10x", 100);
+	printf("%s\n",arglist[0]);
+}
