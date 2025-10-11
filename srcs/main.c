@@ -1,5 +1,5 @@
 #include "../libft/libft.h"
-#include "../printf.h"
+#include "../ft_printf.h"
 
 bool	detect_flag(char c)
 {
@@ -1346,8 +1346,9 @@ void	ft_printf(char *format, ...)
 
 int main(void)
 {
-	ft_printf("%#.0o\n", 123);
+	ft_printf("%p\n", NULL);
+	ft_printf("%.0o\n", 0);
 	ft_printf("%#.0d\n", 123);
-	ft_printf("%s" , "ABCDE");
-	ft_printf("%%");
+	ft_printf("%s\n" , "");
+	ft_printf("%%\n");
 }
