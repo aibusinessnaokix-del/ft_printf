@@ -53,8 +53,6 @@ int	count_precision(char *str)
 	if (str[count] == '.')	
 	{		
 		count++;
-		if (str[count] < '1' || str[count] > '9')
-			return (-1);
 		while ('0' <= str[count] && str[count] <= '9')
 		count++;
 	}
@@ -109,8 +107,6 @@ size_t	percent_len(char *percent)
 	percent += count_flag(percent);
 	index += count_width(percent);
 	percent += count_width(percent);
-	if (count_precision(percent) == -1)
-		return (0);
 	index += count_precision(percent);
 	percent += count_precision(percent);
 	index += count_length(percent);
@@ -171,7 +167,7 @@ char	**allocate_persection(char	*format, char **formlist)
 			formlist[count] = ft_strndup(format, perlen);
 			if (!formlist[count])
 			{
-				free_persection(formlist, count);
+				free_formlist(formlist, count);
 				return (NULL);
 			}
 			count++, format += perlen;
@@ -182,7 +178,7 @@ char	**allocate_persection(char	*format, char **formlist)
 	return (formlist[count] = NULL, formlist);
 }
 
-void	free_persection(char **formlist, size_t count)
+void	free_formlist(char **formlist, size_t count)
 {
 	while (count-- > 0)
 		free(formlist[count]);
@@ -229,6 +225,7 @@ t_flag	initialize_flags(t_flag flags)
 	flags.zero = false;
 	flags.sharp = false;
 	flags.quort = false;
+	flags.prezero = false;
 	flags.width = 0;
 	flags.precision = 0;
 	flags.length = 0;
@@ -323,6 +320,8 @@ t_flag	str_precision(char *str, t_flag flag)
 		return (flag);
 	str++;
 	atoi = ft_atoi_alpha(str);
+	if (atoi == 0)
+		flag.prezero = true;
 	flag.precision = atoi;
 	return (flag);
 }
@@ -436,7 +435,7 @@ char	*treat_flag_s1(char *src, t_flag flag, char *dest, size_t size)
 	}
 	else
 	{
-		while (dcount < size - ft_strlen(src) || (dcount < size - flag.precision && flag.precision != 0))
+		while (dcount < size - ft_strlen(src) && (dcount < size - flag.precision && flag.precision != 0))
 			dest[dcount++] = ' ';
 		while (dcount < size)
 			dest[dcount++] = src[scount++];
@@ -445,18 +444,38 @@ char	*treat_flag_s1(char *src, t_flag flag, char *dest, size_t size)
 	return (dest);
 }
 
+char	*treat_flag_prezero(char *src, t_flag flag, char *dest, size_t size)
+{
+	size_t	dcount;
+
+	dcount = 0;
+	while (dcount < size)
+		dest[dcount++] = ' ';
+	dest[dcount] = '\0';
+	(void)src;
+	(void)flag;
+	return (dest);
+}
+
 char	*treat_flag_s(char *src, t_flag flag)
 {
 	size_t	size;
 	char	*dest;
 
-	size = flag.width;
-	if (size < ft_strlen(src))
-		size = ft_strlen(src);
+	size = ft_strlen(src);
+	if (flag.precision && size > flag.precision)
+		size = flag.precision;
+	if (flag.prezero)
+		size = 0;
+	if (size < flag.width)
+		size = flag.width;
 	dest = (char *)malloc(sizeof(char) * (size + 1));
 		if (dest == NULL)
 			return (NULL);
-	dest = treat_flag_s1(src, flag, dest, size);
+	if (flag.prezero)
+		dest = treat_flag_prezero(src, flag, dest, size);
+	else
+		dest = treat_flag_s1(src, flag, dest, size);
 	return (dest);
 }
 
@@ -1009,7 +1028,7 @@ char	*return_p(va_list args, t_flag flag)
 	addr = (uintptr_t)ptr;
 	itoa = ft_itoa_hexs(addr);
 	dest = treat_flag_p(itoa, flag);
-	return (itoa);
+	return (dest);
 }
 
 char	*treat_flag_p(char	*itoa, t_flag flag)
@@ -1043,7 +1062,7 @@ char	*treat_flag_p_m(char *itoa, t_flag flag, char *dest, size_t size)
 	
 	icount = 0, dcount = 0;
 	dest[dcount++] = '0';
-	dest[dcount++] = 'X';
+	dest[dcount++] = 'x';
 	while (dcount - 2 + ft_strlen(itoa) < flag.precision)
 		dest[dcount++] = '0';
 	while (dcount + ft_strlen(itoa) < flag.precision)
@@ -1063,12 +1082,13 @@ char	*treat_flag_p_z(char *itoa, t_flag flag, char *dest, size_t size)
 	
 	icount = 0, dcount = 0;
 		dest[dcount++] = '0';
-		dest[dcount++] = 'X';
+		dest[dcount++] = 'x';
 	while (dcount + ft_strlen(itoa) < size)
 		dest[dcount++] = '0';
 	while (itoa[icount])
 		dest[dcount++] = itoa[icount++];
 	dest[dcount] = '\0';
+	(void)flag;
 	return (dest);
 }
 
@@ -1081,7 +1101,7 @@ char	*treat_flag_p_n(char *itoa, t_flag flag, char *dest, size_t size)
 	while (dcount + flag.precision + 2 < size && dcount + ft_strlen(itoa) + 2 < size)
 		dest[dcount++] = ' ';
 	dest[dcount++] = '0';
-	dest[dcount++] = 'X';
+	dest[dcount++] = 'x';
 	while (dcount + ft_strlen(itoa) < size)
 		dest[dcount++] = '0';
 	while (itoa[icount])
@@ -1090,25 +1110,115 @@ char	*treat_flag_p_n(char *itoa, t_flag flag, char *dest, size_t size)
 	return (dest);
 }
 
-//char	*return_o(va_list args, t_flag flag)
-//{
-//	unsigned int	nbr;
-//	char			*itoa;
+char	*return_o(va_list args, t_flag flag)
+{
+	unsigned int	nbr;
+	char			*itoa;
+	char			*dest;
 	
-//	if (flag.length <= 2)
-//		nbr = va_arg(args, unsigned int);
-//	if (flag.length == 1)
-//		nbr = (unsigned short int)nbr;
-//	if (flag.length == 2)
-//		nbr = (unsigned char)nbr;
-//	if (flag.length == 3)
-//		nbr = va_arg(args, unsigned long int);
-//	if (flag.length == 4)
-//		nbr = va_arg(args, unsigned long long int);
-//	itoa = treat_flag_o(nbr, flag);
-//	return (itoa);
-//}
+	if (flag.length <= 2)
+		nbr = va_arg(args, unsigned int);
+	if (flag.length == 1)
+		nbr = (unsigned short int)nbr;
+	if (flag.length == 2)
+		nbr = (unsigned char)nbr;
+	if (flag.length == 3)
+		nbr = va_arg(args, unsigned long int);
+	if (flag.length == 4)
+		nbr = va_arg(args, unsigned long long int);
+	itoa = ft_itoa_oct(nbr);
+	dest = treat_flag_o(itoa, flag);
+	return (dest);
+}
 
+char	*treat_flag_o(char	*itoa, t_flag flag)
+{
+	size_t	size;
+	char	*dest;
+
+	if (flag.sharp)
+		size = 	return_maximum(flag.precision + 1, ft_strlen(itoa) + 1, flag.width);
+	else
+		size = 	return_maximum(flag.precision, ft_strlen(itoa), flag.width);
+	dest = (char *)malloc(sizeof(char) * (size + 1));
+	if (dest == NULL)
+		return (NULL);
+	dest = treat_flag_o1(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_o1(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	if (flag.minus)
+		dest = treat_flag_o_m(itoa, flag, dest, size);
+	else if (flag.zero)
+		dest = treat_flag_o_z(itoa, flag, dest, size);
+	else
+		dest = treat_flag_o_n(itoa, flag, dest, size);
+	return (dest);
+}
+
+char	*treat_flag_o_m(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	if (flag.sharp)
+	{
+		dest[dcount++] = '0';
+		while (dcount - 1 + ft_strlen(itoa) < flag.precision)
+			dest[dcount++] = '0';
+	}
+	else
+	while (dcount + ft_strlen(itoa) < flag.precision)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	while (dcount < size)
+		dest[dcount++] = ' ';
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_o_z(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	if (flag.sharp)
+		dest[dcount++] = '0';
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
+
+char	*treat_flag_o_n(char *itoa, t_flag flag, char *dest, size_t size)
+{
+	size_t	icount;
+	size_t	dcount;
+	
+	icount = 0, dcount = 0;
+	if (!flag.sharp)
+		while (dcount + flag.precision < size && dcount + ft_strlen(itoa) < size)
+			dest[dcount++] = ' ';
+	if (flag.sharp)
+	{
+		while (dcount + flag.precision + 1 < size && dcount + ft_strlen(itoa) + 1 < size)
+			dest[dcount++] = ' ';
+		dest[dcount++] = '0';
+	}
+	while (dcount + ft_strlen(itoa) < size)
+		dest[dcount++] = '0';
+	while (itoa[icount])
+		dest[dcount++] = itoa[icount++];
+	dest[dcount] = '\0';
+	return (dest);
+}
 
 char	**malloc_arglist(size_t count)
 {
@@ -1136,11 +1246,11 @@ char	*allocate_argument(va_list args, t_flag flag)
 		return (return_largex(args, flag));
 	if (flag.format == 'p')
 		return (return_p(args, flag));
-	//if (flag.format == 'o')
-	//	return (return_o(args, flag));
+	if (flag.format == 'o')
+		return (return_o(args, flag));
 	//if (flag.format == 'f')
 		//return (return_f(args, flag));
-	if (flag.format == '%') // i may have to check no flags set
+	if (flag.format == '%') 				// you may have to check no flags set
 		return (strdup("%"));
 	return (NULL);
 }
@@ -1155,13 +1265,20 @@ char	**allocate_arglist(va_list args, char **arglist, t_flag *flaglist)
 		arglist[count] = allocate_argument(args, flaglist[count]);
 		if (!arglist[count])
 		{
-			//free_arglist(arglist, count);
+			free_arglist(arglist, count);
 			return (NULL);
 		}
 		count++;
 	}
 	arglist[count] = NULL;
 	return (arglist);
+}
+
+void	free_arglist(char **arglist, size_t count)
+{
+	while (count--)
+		free(arglist[count]);
+	free(arglist);
 }
 
 char	**management_arglist(va_list args, char *format, t_flag *flaglist)
@@ -1180,11 +1297,8 @@ char	**management_arglist(va_list args, char *format, t_flag *flaglist)
 // this is the end of argument section and start of treat flags
 
 
-
-
-char	**testf(char *format, ...)
+char	**management_format(char *format, va_list args)
 {
-	va_list	args;
 	char	**formlist;
 	t_flag	*flaglist;
 	char	**arglist;
@@ -1193,15 +1307,39 @@ char	**testf(char *format, ...)
 		return (NULL);
 	formlist = split_percent(format);
 	flaglist = management_flaglist(format, formlist);
-	va_start(args, format);
+	free_formlist(formlist, count_percent(format));
 	arglist = management_arglist(args, format, flaglist);
-	va_end(args);
+	free(flaglist);
 	return (arglist);
+}
+
+void	ft_printf(char *format, ...)
+{
+	va_list	args;
+	char	**arglist;
+	size_t	pcount;
+
+	va_start(args, format);
+	arglist = management_format(format, args);
+	if (arglist == NULL)
+		return ;
+	pcount = 0;
+	while (*format)
+	{
+		if (*format == '%')
+		{
+			ft_putstr_fd(arglist[pcount++], 1);
+			format++;
+			format += percent_len(format); 
+		}
+		else
+			ft_putchar_fd(*format++, 1);
+	}
+	va_end(args);
+	free_arglist(arglist, pcount);
 }
 
 int main(void)
 {
-	char	**arglist;
-	arglist = testf("%10d", -100);
-	printf("%s\n",arglist[0]);
+	ft_printf("123%5.1sa%c,%c\n", "a", 'a', 'a', 'a');
 }

@@ -19,6 +19,7 @@ typedef struct s_flag
 	bool	zero;
 	bool	sharp;
 	bool	quort;
+	bool	prezero;
 	size_t	width;
 	size_t	precision;
 	size_t	length;
@@ -36,7 +37,6 @@ int		count_precision(char *str);
 bool	detect_format(char c);
 size_t	percent_len(char *percent);
 int		count_percent(char *format);
-void	free_persection(char **formlist, size_t count);
 char	**allocate_persection(char	*format, char **formlist);
 char	**malloc_persection(char *format);
 char	**split_percent(char *format);
@@ -61,6 +61,8 @@ char	*return_u(va_list args, t_flag flaglist);
 char	*return_x(va_list args, t_flag flaglist);
 char	*return_largex(va_list args, t_flag flaglist);
 char	*return_p(va_list args, t_flag flaglist);
+char	*return_o(va_list args, t_flag flag);
+char	*treat_flag_prezero(char *src, t_flag flag, char *dest, size_t size);
 char	*treat_flag_di_nn(char *itoa, t_flag flag, char *dest, size_t size);
 char	*treat_flag_di_nz(char *itoa, t_flag flag, char *dest, size_t size);
 char	*treat_flag_di_nm(char *itoa, t_flag flag, char *dest, size_t size);
@@ -92,5 +94,12 @@ char	*treat_flag_p1(char *itoa, t_flag flag, char *dest, size_t size);
 char	*treat_flag_p_m(char *itoa, t_flag flag, char *dest, size_t size);
 char	*treat_flag_p_z(char *itoa, t_flag flag, char *dest, size_t size);
 char	*treat_flag_p_n(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_o(char	*itoa, t_flag flag);
+char	*treat_flag_o1(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_o_m(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_o_z(char *itoa, t_flag flag, char *dest, size_t size);
+char	*treat_flag_o_n(char *itoa, t_flag flag, char *dest, size_t size);
 
+void	free_formlist(char **formlist, size_t count);
+void	free_arglist(char **arglist, size_t count);
 #endif
