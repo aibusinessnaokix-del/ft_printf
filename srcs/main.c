@@ -1,5 +1,5 @@
-#include "libft/libft.h"
-#include "printf.h"
+#include "../libft/libft.h"
+#include "../printf.h"
 
 bool	detect_flag(char c)
 {
@@ -737,6 +737,7 @@ char	*treat_flag_u1(char *itoa, t_flag flag, char *dest, size_t size)
 		dest = treat_flag_u_z(itoa, flag, dest, size);
 	else
 		dest = treat_flag_u_n(itoa, flag, dest, size);
+	free(itoa);
 	return (dest);
 }
 
@@ -832,6 +833,7 @@ char	*treat_flag_x1(char *itoa, t_flag flag, char *dest, size_t size)
 		dest = treat_flag_x_z(itoa, flag, dest, size);
 	else
 		dest = treat_flag_x_n(itoa, flag, dest, size);
+	free(itoa);
 	return (dest);
 }
 
@@ -947,6 +949,7 @@ char	*treat_flag_lx1(char *itoa, t_flag flag, char *dest, size_t size)
 		dest = treat_flag_lx_z(itoa, flag, dest, size);
 	else
 		dest = treat_flag_lx_n(itoa, flag, dest, size);
+	free(itoa);
 	return (dest);
 }
 
@@ -1052,6 +1055,7 @@ char	*treat_flag_p1(char *itoa, t_flag flag, char *dest, size_t size)
 		dest = treat_flag_p_z(itoa, flag, dest, size);
 	else
 		dest = treat_flag_p_n(itoa, flag, dest, size);
+	free(itoa);
 	return (dest);
 }
 
@@ -1137,7 +1141,7 @@ char	*treat_flag_o(char	*itoa, t_flag flag)
 	char	*dest;
 
 	if (flag.sharp)
-		size = 	return_maximum(flag.precision + 1, ft_strlen(itoa) + 1, flag.width);
+		size = 	return_maximum(flag.precision, ft_strlen(itoa) + 1, flag.width);
 	else
 		size = 	return_maximum(flag.precision, ft_strlen(itoa), flag.width);
 	dest = (char *)malloc(sizeof(char) * (size + 1));
@@ -1155,6 +1159,7 @@ char	*treat_flag_o1(char *itoa, t_flag flag, char *dest, size_t size)
 		dest = treat_flag_o_z(itoa, flag, dest, size);
 	else
 		dest = treat_flag_o_n(itoa, flag, dest, size);
+	free(itoa);
 	return (dest);
 }
 
@@ -1167,12 +1172,12 @@ char	*treat_flag_o_m(char *itoa, t_flag flag, char *dest, size_t size)
 	if (flag.sharp)
 	{
 		dest[dcount++] = '0';
-		while (dcount - 1 + ft_strlen(itoa) < flag.precision)
+		while (dcount + ft_strlen(itoa) < flag.precision)
 			dest[dcount++] = '0';
 	}
 	else
-	while (dcount + ft_strlen(itoa) < flag.precision)
-		dest[dcount++] = '0';
+		while (dcount + ft_strlen(itoa) < flag.precision)
+			dest[dcount++] = '0';
 	while (itoa[icount])
 		dest[dcount++] = itoa[icount++];
 	while (dcount < size)
@@ -1208,7 +1213,7 @@ char	*treat_flag_o_n(char *itoa, t_flag flag, char *dest, size_t size)
 			dest[dcount++] = ' ';
 	if (flag.sharp)
 	{
-		while (dcount + flag.precision + 1 < size && dcount + ft_strlen(itoa) + 1 < size)
+		while (dcount + flag.precision < size && dcount + ft_strlen(itoa) + 1 < size)
 			dest[dcount++] = ' ';
 		dest[dcount++] = '0';
 	}
@@ -1341,5 +1346,8 @@ void	ft_printf(char *format, ...)
 
 int main(void)
 {
-	ft_printf("123%5.1sa%c,%c\n", "a", 'a', 'a', 'a');
+	ft_printf("%#.0o\n", 123);
+	ft_printf("%#.0d\n", 123);
+	ft_printf("%s" , "ABCDE");
+	ft_printf("%%");
 }
