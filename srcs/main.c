@@ -178,12 +178,7 @@ char	**allocate_persection(char	*format, char **formlist)
 	return (formlist[count] = NULL, formlist);
 }
 
-void	free_formlist(char **formlist, size_t count)
-{
-	while (count-- > 0)
-		free(formlist[count]);
-	free(formlist);
-}
+
 
 char	**split_percent(char *format)
 {
@@ -204,7 +199,7 @@ char	**split_percent(char *format)
 
 // this is the end of read section and start of flag management
 
-t_flag	*malloc_flags(char *format)
+t_flag	*malloc_flaglist(char *format)
 {
 	t_flag	*flaglist;
 	size_t	count;
@@ -255,27 +250,27 @@ t_flag	*allocate_flags(char **formlist, t_flag *flaglist)
 	count = 0;
 	while (formlist[count])
 	{
-		flaglist[count] = read_formlist(formlist[count], flaglist[count]);
+		flaglist[count] = read_format(formlist[count], flaglist[count]);
 		count++;
 	}
 	return (flaglist);
 }
 
-t_flag	read_formlist(char *percent, t_flag flag)
+t_flag	read_format(char *format, t_flag flag)
 {
-	flag = str_flag(percent, flag);
-	percent += count_flag(percent);
-	flag = str_width(percent, flag);
-	percent += count_width(percent);
-	flag = str_precision(percent, flag);
-	percent += count_precision(percent);
-	flag = str_length(percent, flag);
-	percent += count_length(percent);
-	flag = str_format(percent, flag);
+	flag = str_to_flag(format, flag);
+	format += count_flag(format);
+	flag = str_to_width(format, flag);
+	format += count_width(format);
+	flag = str_to_precision(format, flag);
+	format += count_precision(format);
+	flag = str_to_length(format, flag);
+	format += count_length(format);
+	flag = str_format(format, flag);
 	return (flag);
 }
 
-t_flag	char_flag(char c, t_flag flag)
+t_flag	char_to_flag(char c, t_flag flag)
 {	
 	if (c == '-')
 		flag.minus = true;
@@ -290,20 +285,20 @@ t_flag	char_flag(char c, t_flag flag)
 	return (flag);
 }
 
-t_flag	str_flag(char *str, t_flag flag)
+t_flag	str_to_flag(char *str, t_flag flag)
 {
 	size_t	count;
 
 	count = 0;
 	while (detect_flag(str[count]) == true)
 	{
-		flag = char_flag(str[count], flag);
+		flag = char_to_flag(str[count], flag);
 		count++;
 	}
 	return (flag);
 }
 
-t_flag	str_width(char *str, t_flag flag)
+t_flag	str_to_width(char *str, t_flag flag)
 {
 	size_t	atoi;
 	
@@ -312,7 +307,7 @@ t_flag	str_width(char *str, t_flag flag)
 	return (flag);
 }
 
-t_flag	str_precision(char *str, t_flag flag)
+t_flag	str_to_precision(char *str, t_flag flag)
 {
 	size_t	atoi;
 
@@ -326,7 +321,7 @@ t_flag	str_precision(char *str, t_flag flag)
 	return (flag);
 }
 
-static size_t	str_length1(char *str)
+static size_t	str_to_length1(char *str)
 {
 	if (*str == 'h')
 	{
@@ -347,9 +342,9 @@ static size_t	str_length1(char *str)
 	return (0);
 }
 
-t_flag	str_length(char *str, t_flag flag)
+t_flag	str_to_length(char *str, t_flag flag)
 {
-	flag.length = str_length1(str);
+	flag.length = str_to_length1(str);
 	return (flag);
 }
 
@@ -363,7 +358,7 @@ t_flag	*management_flaglist(char *format, char **formlist)
 {
 	t_flag	*flaglist;
 
-	flaglist = malloc_flags(format);
+	flaglist = malloc_flaglist(format);
 	if (!flaglist)
 		return (NULL);
 	flaglist = allocate_flags(formlist, flaglist);
@@ -485,6 +480,11 @@ char	*return_s(va_list args, t_flag flag)
 	char	*dest;
 	
 	src =  va_arg(args, char *);
+	if (!src)
+	{
+		dest = strdup("null");
+		return (dest);
+	}
 	dest = treat_flag_s(src, flag);
 	return (dest);
 }
@@ -1028,6 +1028,11 @@ char	*return_p(va_list args, t_flag flag)
 	char			*dest;
 	
 	ptr = va_arg(args, void *);
+	if (!ptr)
+	{
+		dest = strdup("nil");
+		return (dest);
+	}
 	addr = (uintptr_t)ptr;
 	itoa = ft_itoa_hexs(addr);
 	dest = treat_flag_p(itoa, flag);
@@ -1344,9 +1349,16 @@ void	ft_printf(char *format, ...)
 	free_arglist(arglist, pcount);
 }
 
+void	free_formlist(char **formlist, size_t count)
+{
+	while (count-- > 0)
+		free(formlist[count]);
+	free(formlist);
+}
+
 int main(void)
 {
-	ft_printf("%p\n", NULL);
+	ft_printf("%s\n", NULL);
 	ft_printf("%.0o\n", 0);
 	ft_printf("%#.0d\n", 123);
 	ft_printf("%s\n" , "");
