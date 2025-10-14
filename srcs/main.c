@@ -91,9 +91,9 @@ bool	detect_format(char c)
 		return (true);
 	if (c == '%' || c == 'x' || c == 'X')
 		return (true);
-	if (c == 'o' || c == 'f')
+	if (c == 'o')
 		return (true);
-	//if (c == 'e' || c == 'g')
+	//if (c == 'e' || c == 'g' || c == 'f')
 	//	return (true);
 	return (false); 
 }
@@ -414,6 +414,13 @@ char	*return_c(va_list args, t_flag flag)
 	return (str);
 }
 
+size_t	minimum(size_t d1, size_t d2)
+{
+	if (d1 > d2)
+		return (d2);
+	return (d1);
+}
+
 char	*treat_flag_s1(char *src, t_flag flag, char *dest, size_t size)
 {
 	size_t	dcount;
@@ -430,7 +437,8 @@ char	*treat_flag_s1(char *src, t_flag flag, char *dest, size_t size)
 	}
 	else
 	{
-		while (dcount < size - ft_strlen(src) && (dcount < size - flag.precision && flag.precision != 0))
+		while ((flag.precision != 0 && dcount < size - minimum(ft_strlen(src), flag.precision))
+				|| (flag.precision == 0 && dcount <size - ft_strlen(src)))
 			dest[dcount++] = ' ';
 		while (dcount < size)
 			dest[dcount++] = src[scount++];
@@ -1323,30 +1331,41 @@ char	**management_format(char *format, va_list args)
 	return (arglist);
 }
 
-void	ft_printf(char *format, ...)
+int	display_and_count(char *format, char **arglist)
+{
+	size_t	pindex;
+	int		charcount;
+	int		sum;
+	
+	pindex = 0;
+	sum = 0;
+	while (*format)
+	{
+		charcount = 0;
+		if (*format == '%')
+			charcount = ft_putstr_fd(arglist[pindex++], 1), format++, format += percent_len(format); 
+		else
+			charcount = ft_putchar_fd(*format++, 1);
+		if (charcount < 0)
+			break ;
+		sum += charcount;
+	}
+	free_arglist(arglist, pindex);
+	return (sum);
+}
+
+int	ft_printf(char *format, ...)
 {
 	va_list	args;
 	char	**arglist;
-	size_t	pcount;
+	size_t	sum;		
 
 	va_start(args, format);
 	arglist = management_format(format, args);
 	if (arglist == NULL)
-		return ;
-	pcount = 0;
-	while (*format)
-	{
-		if (*format == '%')
-		{
-			ft_putstr_fd(arglist[pcount++], 1);
-			format++;
-			format += percent_len(format); 
-		}
-		else
-			ft_putchar_fd(*format++, 1);
-	}
-	va_end(args);
-	free_arglist(arglist, pcount);
+		return (0);
+	sum = display_and_count(format, arglist);
+	return (va_end(args), sum);
 }
 
 void	free_formlist(char **formlist, size_t count)
@@ -1358,9 +1377,5 @@ void	free_formlist(char **formlist, size_t count)
 
 int main(void)
 {
-	ft_printf("%s\n", NULL);
-	ft_printf("%.0o\n", 0);
-	ft_printf("%#.0d\n", 123);
-	ft_printf("%s\n" , "");
-	ft_printf("%%\n");
+	(ft_printf("%s", "abcdef"));
 }
