@@ -178,6 +178,23 @@ char	**allocate_persection(char	*format, char **formlist)
 	return (formlist[count] = NULL, formlist);
 }
 
+char	*ft_strndup(const char *str, size_t n)
+{
+	size_t	count;
+	char	*dest;
+
+	dest = (char *)malloc(sizeof(char) * (n + 1));
+	if (dest == NULL)
+		return (NULL);
+	count = 0;
+	while (count < n)
+	{
+		dest[count] = str[count];
+		count++;
+	}
+	dest[count] = '\0';
+	return (dest);
+}
 
 
 char	**split_percent(char *format)
@@ -307,6 +324,8 @@ t_flag	str_to_width(char *str, t_flag flag)
 	return (flag);
 }
 
+
+
 t_flag	str_to_precision(char *str, t_flag flag)
 {
 	size_t	atoi;
@@ -320,6 +339,7 @@ t_flag	str_to_precision(char *str, t_flag flag)
 	flag.precision = atoi;
 	return (flag);
 }
+
 
 static size_t	str_to_length1(char *str)
 {
@@ -421,6 +441,16 @@ size_t	minimum(size_t d1, size_t d2)
 	return (d1);
 }
 
+size_t ft_strlen(const char *s)
+{
+    size_t count;
+    
+    count = 0;
+    while (s[count])
+        count++;
+    return(count);
+}
+
 char	*treat_flag_s1(char *src, t_flag flag, char *dest, size_t size)
 {
 	size_t	dcount;
@@ -482,6 +512,26 @@ char	*treat_flag_s(char *src, t_flag flag)
 	return (dest);
 }
 
+char	*ft_strdup(const char *str)
+{
+	size_t	len;
+	size_t	count;
+	char	*dest;
+
+	len = ft_strlen(str);
+	dest = (char *)malloc(sizeof(char) * (len + 1));
+	if (dest == NULL)
+		return (NULL);
+	count = 0;
+	while (str[count])
+	{
+		dest[count] = str[count];
+		count++;
+	}
+	dest[count] = '\0';
+	return (dest);
+}
+
 char	*return_s(va_list args, t_flag flag)
 {
 	char	*src;
@@ -494,6 +544,20 @@ char	*return_s(va_list args, t_flag flag)
 		return (dest);
 	}
 	dest = treat_flag_s(src, flag);
+	return (dest);
+}
+
+static char	*ft_strcpy(char *dest, const char *src)
+{
+	size_t	index;
+
+	index = 0;
+	while (src[index])
+	{
+		dest[index] = src[index];
+		index++;
+	}
+	dest[index] = '\0';
 	return (dest);
 }
 
@@ -1377,5 +1441,5 @@ void	free_formlist(char **formlist, size_t count)
 
 int main(void)
 {
-	(ft_printf("%s", "abcdef"));
+	ft_printf("%s\n", "abcdef");
 }
